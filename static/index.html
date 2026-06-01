@@ -6,5 +6,26 @@
 </head>
 <body>
     <h1>My Audio Ad Generator</h1>
+    <form>
+        <label for="brand-select">Choose a brand:</label>
+        <select name="brand" id="brand-select">
+            <option value="">--Please choose an option--</option>
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        fetch('/static/exampleBrands.json')
+            .then(res => res.json())
+            .then(brands => {
+                const select = document.getElementById('brand-select');
+                brands.forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand.id;
+                    option.textContent = brand.brandName;
+                    select.appendChild(option);
+                });
+            });
+    </script>
 </body>
 </html>
