@@ -10,6 +10,8 @@ RUN uv sync --frozen --no-install-project
 
 COPY ./app /code/app
 
+COPY ./static /code/static
+
 RUN uv sync --frozen
 
 CMD ["uv", "run", "fastapi", "run", "app/main.py", "--port", "80"]
