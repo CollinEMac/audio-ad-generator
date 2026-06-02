@@ -1,0 +1,10 @@
+{
+  "name": "audio-ad-generator",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
