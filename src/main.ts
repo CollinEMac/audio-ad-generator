@@ -3,10 +3,6 @@ interface Brand {
   brandName: string;
 }
 
-interface GenerateAdResponse {
-  message: string;
-}
-
 async function loadBrands(): Promise<void> {
   const res = await fetch('/static/exampleBrands.json');
   const brands: Brand[] = await res.json();
@@ -36,8 +32,12 @@ async function handleSubmit(e: SubmitEvent): Promise<void> {
       method: 'POST',
       body: formData,
     });
-    const data: GenerateAdResponse = await res.json();
-    result.textContent = data.message;
+    const data = await res.json() as { audio_url: string; script: string; brand: string };
+    result.innerHTML = `
+      <p><strong>${data.brand}</strong></p>
+      <p><em>${data.script}</em></p>
+      <audio controls src="${data.audio_url}"></audio>
+    `;
   } finally {
     btn.disabled = false;
     btn.textContent = 'Submit';
