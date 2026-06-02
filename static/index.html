@@ -6,13 +6,14 @@
 </head>
 <body>
     <h1>My Audio Ad Generator</h1>
-    <form>
+    <form id="ad-form">
         <label for="brand-select">Choose a brand:</label>
         <select name="brand" id="brand-select">
-            <option value="">--Please choose an option--</option>
+            <option value="0">--Please choose an option--</option>
         </select>
-        <button type="submit">Submit</button>
+        <button type="submit" id="submit-btn">Submit</button>
     </form>
+    <div id="result"></div>
 
     <script>
         fetch('/static/exampleBrands.json')
@@ -26,6 +27,29 @@
                     select.appendChild(option);
                 });
             });
+
+        document.getElementById('ad-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const result = document.getElementById('result');
+
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            result.textContent = '';
+
+            try {
+                const formData = new FormData(e.target);
+                const res = await fetch('/generate-ad', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await res.json();
+                result.textContent = data.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit';
+            }
+        });
     </script>
 </body>
 </html>
