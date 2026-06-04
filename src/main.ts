@@ -22,6 +22,13 @@ async function handleSubmit(e: SubmitEvent): Promise<void> {
   const btn = document.getElementById('submit-btn') as HTMLButtonElement;
   const result = document.getElementById('result') as HTMLDivElement;
 
+  // Bail out if there is an invalid selection.
+  const select = document.getElementById('brand-select') as HTMLSelectElement;
+  if (!select.value) {
+    result.textContent = 'Please select a brand.';
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Generating...';
   result.textContent = '';
