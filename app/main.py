@@ -89,7 +89,18 @@ async def _text_to_speech(script: str, voice_id: str) -> Path:
     return Path(tmp.name)
 
 
-async def _generate_music(brand: dict) -> Path:
+def _get_audio_duration(path: Path) -> float:
+    """Returns audio duration in seconds."""
+    result = subprocess.run([
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        str(path)
+    ], capture_output=True, text=True, check=True)
+    return float(result.stdout.strip())
+
+
+async def _generate_music(brand: dict, duration: float) -> Path:
     """Generate background music via ElevenLabs sound generation"""
     prompt = (
         f"Background music for a 15-second audio advertisement. "
@@ -99,7 +110,7 @@ async def _generate_music(brand: dict) -> Path:
     )
     audio_generator = elevenlabs_client.text_to_sound_effects.convert(
         text=prompt,
-        duration_seconds=17, # slightly longer so mixing has room
+        duration_seconds=duration,
         prompt_influence=0.4,
     )
     tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
@@ -109,7 +120,7 @@ async def _generate_music(brand: dict) -> Path:
     return Path(tmp.name)
 
 
-def _mix_audio(voiceover_path: Path, music_path: Path) -> Path:
+def _mix_audio(voiceover_path: Path, music_path: Path, duration: float) -> Path:
     """Edit the audio given a music clip and voice clip"""
     out_path = OUTPUT_DIR / f"{uuid.uuid4()}.mp3"
     subprocess.run([
@@ -118,7 +129,7 @@ def _mix_audio(voiceover_path: Path, music_path: Path) -> Path:
         "-i", str(voiceover_path),
         "-filter_complex", "[0:a]volume=0.1[music];[music][1:a]amix=inputs=2:duration=first[out]",
         "-map", "[out]",
-        "-t", "17", # slightly more than 15
+        "-t", str(duration),
         "-y",
         str(out_path)
     ], check=True, capture_output=True)
@@ -143,14 +154,15 @@ async def generate_ad(brand_id: int = Form(...)):
         _resolve_voice_id(brand["voice"]),
     )
 
-    # Get voice script read and music in parallel
-    voiceover_path, music_path = await asyncio.gather(
-        _text_to_speech(script, voice_id),
-        _generate_music(brand),
-    )
+    # Get voice read first so we know how much music we need
+    voiceover_path = await _text_to_speech(script, voice_id)
+    duration = _get_audio_duration(voiceover_path) + 1.0  # 1s buffer
+
+    # Generate the music for the required duration
+    music_path = await _generate_music(brand, duration)
 
     try:
-        final_path = _mix_audio(voiceover_path, music_path)
+        final_path = _mix_audio(voiceover_path, music_path, duration)
     finally:
         # Clean up temporary files
         voiceover_path.unlink(missing_ok=True)
