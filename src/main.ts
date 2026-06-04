@@ -45,6 +45,8 @@ async function handleSubmit(e: SubmitEvent): Promise<void> {
       <p><em>${data.script}</em></p>
       <audio controls src="${data.audio_url}"></audio>
     `;
+  catch {
+    result.textContent = 'Something didn\'t go quite right... Give it another shot.';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Submit';
