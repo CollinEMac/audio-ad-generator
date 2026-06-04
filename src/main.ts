@@ -41,11 +41,14 @@ async function handleSubmit(e: SubmitEvent): Promise<void> {
     });
     const data = await res.json() as { audio_url: string; script: string; brand: string };
     result.innerHTML = `
-      <p><strong>${data.brand}</strong></p>
-      <p><em>${data.script}</em></p>
-      <audio controls src="${data.audio_url}"></audio>
+      <div class="mt-4 text-left">
+        <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Generated Ad</p>
+        <p class="text-xl font-bold text-slate-900 mb-3">${data.brand}</p>
+        <p class="text-slate-700 italic leading-relaxed mb-5">${data.script}</p>
+        <audio controls src="${data.audio_url}" class="w-full"></audio>
+       </div>
     `;
-  catch {
+  } catch {
     result.textContent = 'Something didn\'t go quite right... Give it another shot.';
   } finally {
     btn.disabled = false;
